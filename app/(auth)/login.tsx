@@ -1,7 +1,9 @@
+import { useRouter } from "expo-router";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen(){
+    const router = useRouter()
     return (
       <SafeAreaView edges={["top","bottom"]} style={styles.container}>
           <View style={styles.content}>
@@ -26,11 +28,12 @@ export default function LoginScreen(){
               />
 
               <TouchableOpacity style={styles.button}>
-                <Text>Sign In</Text>
+                <Text style={styles.buttonText}>Sign In</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.linkButton}>
-                <Text style={styles.buttonText}>
-                  Don't have an account <Text>Sign Up</Text>
+
+              <TouchableOpacity style={styles.linkButton} onPress={()=> router.push("/(auth)/signup")}>
+                <Text style={styles.linkButtonText}>
+                  Don't have an account? <Text style={styles.linkButtonTextBold}>Sign Up</Text>
                 </Text>
               </TouchableOpacity>
             </View>
@@ -81,12 +84,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     borderRadius: 12,
     padding: 16,
-    alignItems: "center",
+    alignItems: "center"
   },
   buttonText: {
-
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600"
   },
   linkButton: {
-
-  }
+    marginTop: 24,
+    alignItems: "center"
+  },
+  linkButtonText: {
+    color: "#666",
+    fontSize: 14,
+  },
+  linkButtonTextBold: {
+    fontWeight: "600",
+    color: "#000"
+  },
 });
