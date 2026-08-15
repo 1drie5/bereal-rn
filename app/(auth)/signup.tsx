@@ -1,6 +1,6 @@
 import { useAuth } from "@/context/AuthContent";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -10,6 +10,10 @@ export default function SignUpScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const {signUp} = useAuth()
+
+  useEffect(() => {
+    router.push("/(auth)/onboarding")
+  } ,[])
 
   const handleSignUp = async () => {
     if(!email || !password) {
