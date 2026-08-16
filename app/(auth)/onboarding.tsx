@@ -11,6 +11,7 @@ import {
 import * as ImagePicker from "expo-image-picker"
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
+import { supabase } from "@/lib/supabase/client";
 
 export default function Onboarding() {
   const [name, setName] = useState("");
@@ -65,8 +66,35 @@ export default function Onboarding() {
     ]);
   }
 
-  const handleCOmplete = () => {
+  const handleCOmplete = async () => {
+    if(!name || !username) {
+      Alert.alert("Error","Please fill in all the fields");
+    }
+    if(username.length < 3) {
+      Alert.alert("Error","Username must be atleast 3 characters");
+    }
 
+    setIsLoading(true);
+    try {
+      // Check if username exists
+      const {data: existingUser} = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", username);
+
+      if (existingUser) {
+        Alert.alert(
+          "Error",
+          "This username is already taken. Please choose another one.",
+        );
+        setIsLoading(false);
+        return;
+      }
+    } catch (error) {
+      Alert.alert("Error","Failed to complete. Please try again.")
+    } finally {
+      setIsLoading(false);
+    }
   }
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.container}>
