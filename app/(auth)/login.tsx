@@ -1,9 +1,32 @@
+import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function LoginScreen(){
-    const router = useRouter()
+export default function LoginScreen() {
+    const [email, setEmail] = useState("");
+    const [password, setpassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
+    const {signIn} = useAuth()
+
+    const handleLogin = async () => {
+        if (!email || !password) {
+          Alert.alert("Error", "Please fill in all the fields");
+        }
+        setIsLoading(true);
+        try {
+          await signIn(email, password);
+          router.push("/(tabs)");
+        } catch (error) {
+          console.error(error);
+          Alert.alert("Error", "Failed to sign in. Please try again.");
+        } finally {
+          setIsLoading(false);
+        }
+      };
+    
     return (
       <SafeAreaView edges={["top","bottom"]} style={styles.container}>
           <View style={styles.content}>
@@ -16,6 +39,8 @@ export default function LoginScreen(){
                 keyboardType="email-address"
                 autoComplete="email"
                 autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
                 style={styles.input}
               />
               <TextInput 
@@ -24,11 +49,17 @@ export default function LoginScreen(){
                 autoComplete="password"
                 secureTextEntry
                 autoCapitalize="none"
+                value={password}
+                onChangeText={setpassword}
                 style={styles.input}
               />
 
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>Sign In</Text>
+              <TouchableOpacity style={styles.button} onPress={handleLogin}>
+                {isLoading ? (
+                  <ActivityIndicator size={24} color="#fff"/>
+                ) : (
+                  <Text style={styles.buttonText}>Sign In</Text>
+                )}
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.linkButton} onPress={()=> router.push("/(auth)/signup")}>

@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
 export interface User {
     id: string;
@@ -13,6 +13,7 @@ export interface User {
 interface AuthContextType{
     user: User | null;
     signUp: (email: string, password: string) => Promise<void>;
+    signIn: (email: string, password: string) => Promise<void>;
     updateUser: (userData: Partial<User>) => Promise<void>;
 }
 
@@ -21,6 +22,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider = ({children}:{children: ReactNode}) => {
     const [user, setUser] = useState<User | null>(null);
     
+    useEffect(() => {
+      checkSession();
+    }, []);
+
+    const checkSession = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session?.user) {
+          const profile = await fetchUserProfile(session.user.id);
+          setUser(profile);
+        } else {
+          setUser(null)
+        }
+      } catch (error) {
+        console.error("Error checking session: ", error);
+        setUser(null);
+      }
+    }
     const fetchUserProfile = async (userId: string): Promise<User | null> => {
       try {
         const {data, error } =await supabase
@@ -59,7 +81,22 @@ export const AuthProvider = ({children}:{children: ReactNode}) => {
       }
     }
 
-    const signIn = async(ElementInternals: string, password: string) => {};
+    const signIn = async(email: string, password: string) => {
+      const {data, error} = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+        
+        console.log("SIGNUP USER:", data.user);
+        console.log("SIGNUP SESSION:", data.session);
+
+        if (error) throw error;
+
+        if (data.user) {
+            const profile = await fetchUserProfile(data.user.id);
+            setUser(profile);
+        }
+    };
 
     const signUp = async(email: string, password: string) => {
         const {data, error} = await supabase.auth.signUp({
@@ -95,7 +132,7 @@ export const AuthProvider = ({children}:{children: ReactNode}) => {
         }
     };
     return (
-      <AuthContext.Provider value={{ user, signUp, updateUser }}>
+      <AuthContext.Provider value={{ user, signUp, updateUser, signIn }}>
         {children}
       </AuthContext.Provider>
     );

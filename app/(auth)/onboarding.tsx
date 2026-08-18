@@ -23,6 +23,7 @@ export default function Onboarding() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const {user, updateUser} = useAuth();
   const router = useRouter();
+  console.log("ONBOARDING USER:", user);
 
   const pickImage = async () => {
     const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -74,9 +75,11 @@ export default function Onboarding() {
   const handleCOmplete = async () => {
     if(!name || !username) {
       Alert.alert("Error","Please fill in all the fields");
+      return;
     }
     if(username.length < 3) {
       Alert.alert("Error","Username must be atleast 3 characters");
+      return;
     }
 
     setIsLoading(true);
