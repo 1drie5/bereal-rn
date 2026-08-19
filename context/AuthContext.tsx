@@ -12,6 +12,7 @@ export interface User {
 
 interface AuthContextType{
     user: User | null;
+    loading: boolean;
     signUp: (email: string, password: string) => Promise<void>;
     signIn: (email: string, password: string) => Promise<void>;
     updateUser: (userData: Partial<User>) => Promise<void>;
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider = ({children}:{children: ReactNode}) => {
     const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
     
     useEffect(() => {
       checkSession();
@@ -38,9 +40,13 @@ export const AuthProvider = ({children}:{children: ReactNode}) => {
         } else {
           setUser(null)
         }
+        // await new Promise((resolve) => setTimeout(resolve, 6000));
       } catch (error) {
         console.error("Error checking session: ", error);
         setUser(null);
+        // await new Promise((resolve) => setTimeout(resolve, 2000));
+      } finally {
+        setLoading(false);
       }
     }
     const fetchUserProfile = async (userId: string): Promise<User | null> => {
@@ -132,7 +138,7 @@ export const AuthProvider = ({children}:{children: ReactNode}) => {
         }
     };
     return (
-      <AuthContext.Provider value={{ user, signUp, updateUser, signIn }}>
+      <AuthContext.Provider value={{ user, loading, signUp, updateUser, signIn }}>
         {children}
       </AuthContext.Provider>
     );
