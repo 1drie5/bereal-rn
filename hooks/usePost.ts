@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/AuthContext"
+import { supabase } from "@/lib/supabase/client";
 import { uploadPostImage } from "@/lib/supabase/storage";
 
 export const usePosts = () => {
@@ -9,9 +10,23 @@ export const usePosts = () => {
     }
 
     try {
-      const imageUrl = await uploadPostImage(user.id, imageUri)
+      const imageUrl = await uploadPostImage(user.id, imageUri);
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      const {error} = await supabase.from("posts").insert({
+        user_id: user.id,
+        image_url: imageUrl,
+        description: description || null,
+        expires_at: expiresAt.toISOString(),
+      }).select().single()
+
+      if (error) {
+        console.error("Error creating posts: ", error);
+        throw error;
+      }
     } catch (error) {
-      
+        console.error("Error creating posts: ", error);
+        throw error;
     }
   }
 

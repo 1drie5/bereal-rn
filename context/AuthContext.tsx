@@ -132,6 +132,16 @@ export const AuthProvider = ({children}:{children: ReactNode}) => {
 
           const {error} = await supabase.from("profiles").update(updateData).eq("id", user.id);
           if (error) throw error;
+
+          setUser((currentUser) =>
+            currentUser
+              ? {
+                ...currentUser,
+                ...userData,
+              }
+            : null
+          );
+
         } catch (error) {
           console.error("Error updating user:", error);
           throw error; 

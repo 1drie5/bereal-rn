@@ -5,12 +5,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker"
 import { Image } from "expo-image";
 import { useState } from "react";
+import { usePosts } from "@/hooks/usePost";
 
 export default function Index() {
   const [showPreview, setShowPreview] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [description, setDescription] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
+  const createPost = usePosts()
   const pickImage = async () => {
       const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if(status!=="granted") {
@@ -64,14 +67,20 @@ export default function Index() {
 
   const handlePost = async () => {
     if(!previewImage) return;
+    setIsUploading(true);
     try {
-      
+      await createPost(previewImage, description);
+      setPreviewImage(null);
+      setDescription("");
+      setShowPreview(false);
     } catch (error) {
       console.error("Error creating post:", error);
       Alert.alert(
         "Error",
         "Failed to create post. Please try again."
       )
+    } finally {
+      setIsUploading(false);
     }
   }
   return (
@@ -108,15 +117,21 @@ export default function Index() {
                   setPreviewImage(null);
                   setDescription("");
                 }}
+                disabled={isUploading}
                 >
                   <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity 
-                style={[styles.modalButton, styles.postButton]}
+                style={[styles.modalButton, styles.postButton, isUploading && styles.postButtonDisabled,]}
                 onPress={handlePost}
+                disabled={isUploading}
                 >
-                  <Text style={styles.postButtonText}>Post</Text>
+                  {isUploading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.postButtonText}>Post</Text>
+                  )}
               </TouchableOpacity>
             </View>
           </View>
@@ -220,6 +235,9 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-  }
+  },
+  postButtonDisabled: {
+    opacity: 0.6,
+  },
 });
 
