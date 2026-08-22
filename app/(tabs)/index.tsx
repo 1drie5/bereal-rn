@@ -13,7 +13,7 @@ export default function Index() {
   const [description, setDescription] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
-  const createPost = usePosts()
+  const { createPost } = usePosts()
   const pickImage = async () => {
       const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if(status!=="granted") {
@@ -88,6 +88,9 @@ export default function Index() {
       style={styles.container}
       edges={["bottom","top"]}
     >
+
+      {/* LIST */}
+      
       <TouchableOpacity style={styles.fab} onPress={showImagePicker}>
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
