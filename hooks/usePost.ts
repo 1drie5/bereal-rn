@@ -27,7 +27,7 @@ export const usePosts = () => {
 
   useEffect(() => {
     loadPosts()
-  }, [])
+  }, [user])
 
   const loadPosts = async () => {
     if (!user) return
@@ -75,6 +75,16 @@ export const usePosts = () => {
     }
 
     try {
+       // Deactivate any existing posts
+      const { error: deactivateError } = await supabase
+        .from("posts")
+        .update({ is_active: false })
+        .eq("user_id", user.id).eq("is_active", true);
+      
+      if (deactivateError) {
+        console.error("Error deactivating old posts: ", deactivateError);
+      }
+
       const imageUrl = await uploadPostImage(user.id, imageUri);
       const now = new Date();
       const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -89,6 +99,8 @@ export const usePosts = () => {
         console.error("Error creating posts: ", error);
         throw error;
       }
+      // Refresh feed after creating the post
+      await loadPosts();
     } catch (error) {
         console.error("Error creating posts: ", error);
         throw error;

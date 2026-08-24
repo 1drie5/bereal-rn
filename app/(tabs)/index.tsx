@@ -67,7 +67,7 @@ const PostCard = ({post, currentUserId}: PostCardProps) => {
       <View style={styles.postFooter}>
         {post.description && ( 
           <Text style={styles.postDescription}>{post.description}</Text>
-        )}{" "}
+        )}
         <Text style={styles.postInfo}>
           {isOwnPost ? "Your Post" : `${postUser?.name}' post`} • Expires in {" "}
           {formatTimeRemaining(post.expires_at)}
@@ -85,6 +85,16 @@ export default function Index() {
   const router = useRouter();
   const { createPost, posts } = usePosts();
   const { user } = useAuth();
+
+  // Check if user has a active post
+  const userActivePost = posts.find(
+    (post) => post.user_id === user?.id && 
+    post.is_active &&
+    new Date(post.expires_at) > new Date(),
+  );
+
+  const hasActivePost = !!userActivePost;
+
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -166,13 +176,16 @@ export default function Index() {
       {/* LIST */}
       <FlatList data={posts} renderItem={renderPost} />
       <TouchableOpacity style={styles.fab} onPress={showImagePicker}>
-        <Text style={styles.fabText}>+</Text>
+        <Text style={styles.fabText}>{hasActivePost ? "⟳" : "+"}</Text>
       </TouchableOpacity>
 
       <Modal visible={showPreview} transparent animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Preview Your Post</Text>
+            <Text style={styles.modalTitle}>
+              {""}
+              {hasActivePost ? "Replace Your Post" : "Preview Your Post"}
+            </Text>
             {previewImage && (
               <Image
                 source={{ uri: previewImage }}
@@ -215,7 +228,9 @@ export default function Index() {
                 {isUploading ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.postButtonText}>Post</Text>
+                  <Text style={styles.postButtonText}>
+                    {hasActivePost ? "Replace" : "Post"}
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
