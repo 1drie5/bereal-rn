@@ -107,5 +107,9 @@ export const usePosts = () => {
     }
   }
 
-  return {createPost, posts};
+  const refreshPosts = async () => {
+    await loadPosts();
+  }
+
+  return {createPost, posts, refreshPosts};
 }

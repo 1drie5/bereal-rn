@@ -3,6 +3,7 @@ import {
   Alert,
   FlatList,
   Modal,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
@@ -82,8 +83,9 @@ export default function Index() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [description, setDescription] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
-  const { createPost, posts } = usePosts();
+  const { createPost, posts, refreshPosts } = usePosts();
   const { user } = useAuth();
 
   // Check if user has a active post
@@ -95,6 +97,16 @@ export default function Index() {
 
   const hasActivePost = !!userActivePost;
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshPosts();
+    } catch (error) {
+      console.error("Error refreshing posts: ", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -174,7 +186,15 @@ export default function Index() {
   return (
     <SafeAreaView style={styles.container} edges={["bottom", "top"]}>
       {/* LIST */}
-      <FlatList data={posts} renderItem={renderPost} />
+      <FlatList data={posts} 
+        renderItem={renderPost} 
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={
+          posts.length === 0 ? styles.emptyContent : styles.content
+        }
+        ListEmptyComponent={<Text>No posts found</Text>}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}
+      />
       <TouchableOpacity style={styles.fab} onPress={showImagePicker}>
         <Text style={styles.fabText}>{hasActivePost ? "⟳" : "+"}</Text>
       </TouchableOpacity>
@@ -336,6 +356,16 @@ const styles = StyleSheet.create({
   },
   postButtonDisabled: {
     opacity: 0.6,
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 100,
+  },
+  emptyContent: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
   },
   postContainer: {
     backgroundColor: "#fff",
