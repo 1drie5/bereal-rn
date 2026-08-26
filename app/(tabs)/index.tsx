@@ -34,7 +34,9 @@ const PostCard = ({post, currentUserId}: PostCardProps) => {
       <View style={styles.postHeader}>
         <View style={styles.userInfo}>
           {postUser?.profile_image_url ? (
-            <Image source={{ uri: postUser.profile_image_url }} 
+            <Image 
+            cachePolicy={"none"}
+            source={{ uri: postUser.profile_image_url }} 
             style={styles.avatar}
           />
           ) : (
@@ -60,6 +62,7 @@ const PostCard = ({post, currentUserId}: PostCardProps) => {
       </View>
 
       <Image
+        cachePolicy={"none"}
         source={{ uri: post.image_url }}
         style={styles.postImage}
         contentFit="cover"
@@ -208,6 +211,7 @@ export default function Index() {
             </Text>
             {previewImage && (
               <Image
+                cachePolicy={"none"}
                 source={{ uri: previewImage }}
                 style={styles.previewImage}
                 contentFit="cover"

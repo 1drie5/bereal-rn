@@ -16,6 +16,7 @@ interface AuthContextType{
     signUp: (email: string, password: string) => Promise<void>;
     signIn: (email: string, password: string) => Promise<void>;
     updateUser: (userData: Partial<User>) => Promise<void>;
+    signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -28,6 +29,10 @@ export const AuthProvider = ({children}:{children: ReactNode}) => {
       checkSession();
     }, []);
 
+    const signOut = async () => {
+      await supabase.auth.signOut();
+      setUser(null);
+    }
     const checkSession = async () => {
       try {
         const {
@@ -130,9 +135,15 @@ export const AuthProvider = ({children}:{children: ReactNode}) => {
           if (userData.profileImage !== undefined) updateData.profile_image_url = userData.profileImage;
           if (userData.onboardingCompleted !== undefined) updateData.onboarding_completed = userData.onboardingCompleted;
 
-          const {error} = await supabase.from("profiles").update(updateData).eq("id", user.id);
+          const {error, data} = await supabase
+            .from("profiles")
+            .update(updateData)
+            .eq("id", user.id)
+            .select()
+            .single();
           if (error) throw error;
-
+          
+          /*
           setUser((currentUser) =>
             currentUser
               ? {
@@ -141,14 +152,18 @@ export const AuthProvider = ({children}:{children: ReactNode}) => {
               }
             : null
           );
-
-        } catch (error) {
+          */
+          if (data){
+            const profile = await fetchUserProfile(data.id);
+            setUser(profile);
+          }
+      } catch (error) {
           console.error("Error updating user:", error);
           throw error; 
         }
     };
     return (
-      <AuthContext.Provider value={{ user, loading, signUp, updateUser, signIn }}>
+      <AuthContext.Provider value={{ user, loading, signUp, updateUser, signIn, signOut }}>
         {children}
       </AuthContext.Provider>
     );

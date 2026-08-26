@@ -147,6 +147,7 @@ export default function Onboarding() {
             
             {profileImage ? (
               <Image
+                cachePolicy={"none"}
                 source={{ uri: profileImage }}
                 style={styles.profileImage}
               />
