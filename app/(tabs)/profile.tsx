@@ -99,7 +99,7 @@ return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Account</Text>
       
-      <TouchableOpacity style={styles.settingItem}>
+      <TouchableOpacity style={styles.settingItem} onPress={() => router.push("/edit-profile")}>
         <Text style={styles.settingLabel}>Edit Profile</Text>
         <Text style={styles.settingValue}>➜</Text>
       </TouchableOpacity>
