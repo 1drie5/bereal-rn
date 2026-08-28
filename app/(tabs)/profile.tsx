@@ -1,5 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
@@ -8,8 +8,9 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 import { replace } from "expo-router/build/global-state/routing";
 export default function Profile() {
-  const {user, updateUser, signOut} =useAuth();
+  const {user, updateUser, signOut, deleteAccount} = useAuth();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   
   const handleUpdateProfileImage = async () => {
@@ -64,6 +65,41 @@ export default function Profile() {
         }
       },
     ]);
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "This will permanently delete your account. This cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setIsDeleting(true);
+
+            try {
+              await deleteAccount();
+
+              router.replace("/(auth)/login");
+            } catch (error) {
+              console.error("Error deleting account:", error);
+
+              Alert.alert(
+                "Error",
+                "Failed to delete account. Please try again."
+              );
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
 return (
@@ -138,8 +174,11 @@ return (
       <TouchableOpacity style={[styles.settingItem, styles.signOutButton]} onPress={handleSignOut}>
         <Text style={styles.signOutText}>Sign Out</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.settingItem, styles.deleteButton]}>
-        <Text style={styles.deleteText}>Delete Account</Text>
+      <TouchableOpacity style={[styles.settingItem, styles.deleteButton]} onPress={handleDeleteAccount} disabled={isDeleting}>
+        { isDeleting ? (
+          <ActivityIndicator size="small" color="#ff3b30" />
+          ) : (
+            <Text style={styles.deleteText}>Delete Account</Text>)}
       </TouchableOpacity>
     </View>
     </ScrollView>
