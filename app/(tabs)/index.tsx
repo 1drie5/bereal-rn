@@ -24,9 +24,10 @@ import { formatTimeAgo, formatTimeRemaining } from "@/lib/supabase/date-helper";
 interface PostCardProps {
   post: Post;
   currentUserId?: string;
+  onDelete: (post: Post) => Promise<void>;
 }
 
-const PostCard = ({post, currentUserId}: PostCardProps) => {
+const PostCard = ({post, currentUserId, onDelete}: PostCardProps) => {
   const postUser = post.profiles;
   const isOwnPost = post.user_id === currentUserId;
   return (
@@ -41,7 +42,7 @@ const PostCard = ({post, currentUserId}: PostCardProps) => {
           />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Text style={styles.avatar}>
+              <Text style={styles.avatarText}>
                 {postUser?.name?.[0]?.toUpperCase() || "U"}
               </Text>
             </View>
@@ -54,10 +55,47 @@ const PostCard = ({post, currentUserId}: PostCardProps) => {
         </View>
         
         {/* Post Content */}
-        <View style={styles.timeRemainingBadge}>
-          <Text style={styles.timeRemainingText}>
-            {formatTimeRemaining(post.expires_at)}
-          </Text>
+        <View style={styles.headerRight}>
+          <View style={styles.timeRemainingBadge}>
+            <Text style={styles.timeRemainingText}>
+              {formatTimeRemaining(post.expires_at)}
+            </Text>
+          </View>
+          {isOwnPost && (
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => {
+                Alert.alert(
+                  "Delete Post",
+                  "Are you sure you want to delete this post?",
+                  [
+                    {
+                      text: "Cancel",
+                      style: "cancel",
+                    },
+                    {
+                      text: "Delete",
+                      style: "destructive",
+                      onPress: async () => {
+                        try {
+                          await onDelete(post);
+                        } catch (error) {
+                          console.error("Error deleting post:", error);
+
+                          Alert.alert(
+                            "Error",
+                            "Failed to delete post. Please try again."
+                          );
+                        }
+                      },
+                    },
+                  ]
+                );
+              }}
+            >
+              <Text style={styles.menuText}>⋮</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -88,7 +126,7 @@ export default function Index() {
   const [isUploading, setIsUploading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
-  const { createPost, posts, refreshPosts } = usePosts();
+  const { createPost, deletePost, posts, refreshPosts } = usePosts();
   const { user } = useAuth();
 
   // Check if user has a active post
@@ -182,6 +220,7 @@ export default function Index() {
     <PostCard
       post={item}
       currentUserId={user?.id}
+      onDelete={deletePost}
     />
   );
 };
@@ -445,6 +484,22 @@ const styles = StyleSheet.create({
   postInfo: {
     fontSize: 14,
     color: "#666"
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  menuButton: {
+    width: 32,
+    height: 32,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  menuText: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#000",
   },
 });
 

@@ -107,9 +107,51 @@ export const usePosts = () => {
     }
   }
 
+  const deletePost = async (post: Post) => {
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    if (post.user_id !== user.id) {
+      throw new Error("You can only delete your own posts");
+    }
+
+    try {
+      // Delete database row
+      const { error: postError } = await supabase
+        .from("posts")
+        .delete()
+        .eq("id", post.id)
+        .eq("user_id", user.id);
+
+      if (postError) {
+        throw postError;
+      }
+
+      // Delete image from Storage
+      const imagePath = post.image_url.split("/posts/")[1];
+
+      if (imagePath) {
+        const { error: storageError } = await supabase.storage
+          .from("posts")
+          .remove([imagePath]);
+
+        if (storageError) {
+          console.error("Error deleting post image:", storageError);
+        }
+      }
+
+      // Refresh feed
+      await loadPosts();
+    }   catch (error) {
+      console.error("Error deleting post:", error);
+      throw error;
+    }
+  }
+
   const refreshPosts = async () => {
     await loadPosts();
   }
 
-  return {createPost, posts, refreshPosts};
+  return {createPost, deletePost, posts, refreshPosts};
 }
